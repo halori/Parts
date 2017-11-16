@@ -2,6 +2,10 @@ package de.ogli.parts;
 
 import junit.framework.TestCase;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -17,12 +21,15 @@ public class TestDb extends TestCase {
 		Session session = sessionFactory.openSession();
 		int batchSize = 5000;
 		
+		ArrayList<Long> allComponentIds = new ArrayList<Long>();
+		
 		for(int i = 0; i < N; i += batchSize) {
-			System.out.println("created "+i+" from "+N+" components");
+			System.out.println("created "+i+" from "+allComponentIds.size()+" components");
 	    	TestDataGenerator tdg = new TestDataGenerator(session, batchSize);
-	    	boolean fillReachabilityTable = true;
-			tdg.createBatch(fillReachabilityTable );
-	    }
+			String nameSuffix = ""+allComponentIds.size();
+			HashMap<Long, HashSet<Long>> subPartRelation = tdg.createBatch(nameSuffix );
+	        allComponentIds.addAll(subPartRelation.keySet());
+		}
 		session.close();
 	}
 }
