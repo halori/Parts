@@ -75,7 +75,7 @@ public class TestDataGenerator {
 
 	private void saveSubpartRelations(long parentId, HashSet<Long> partIds) {
 
-		System.out.print(""+partIds.size()+",");
+		//System.out.print(""+partIds.size()+",");
 
 		for (long partId : partIds) {
 			SubPartRelation edge = new SubPartRelation(parentId, partId);

@@ -24,7 +24,7 @@ public class TestDb extends TestCase {
 		ArrayList<Long> allComponentIds = new ArrayList<Long>();
 		
 		for(int i = 0; i < N; i += batchSize) {
-			System.out.println("created "+i+" from "+allComponentIds.size()+" components");
+			System.out.println("created "+allComponentIds.size()+" from "+N+" components");
 	    	TestDataGenerator tdg = new TestDataGenerator(session, batchSize);
 			String nameSuffix = ""+allComponentIds.size();
 			HashMap<Long, HashSet<Long>> subPartRelation = tdg.createBatch(nameSuffix );
