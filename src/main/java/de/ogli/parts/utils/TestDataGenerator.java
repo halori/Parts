@@ -49,6 +49,7 @@ public class TestDataGenerator {
 			Component c = new Component("BaseComponent" + i + nameSuffix);
 			session.save(c);
 			savedComponentIds.add(c.getId());
+			SubPartRelationForBatch.put(c.getId(), new HashSet<Long>());
 		} else {
 			Component c = new Component("Composite" + nameSuffix);
 			session.save(c);
@@ -62,11 +63,9 @@ public class TestDataGenerator {
 				session.save(t);
 				usedSubComponentIds.add(childId);
 				Relations.addToRelation(SubPartRelationForBatch, parentId, childId);
-				HashSet<Long> successorIds = SubPartRelationForBatch.get(parentId);
-				HashSet<Long> childSuccessorIds = SubPartRelationForBatch.get(childId);
-				if (childSuccessorIds != null) {
-					successorIds.addAll(childSuccessorIds);
-				}
+				HashSet<Long> subpartIds = SubPartRelationForBatch.get(parentId);
+				HashSet<Long> childSubpartIds = SubPartRelationForBatch.get(childId);
+				subpartIds.addAll(childSubpartIds);
 			}
 			HashSet<Long> successorIds = SubPartRelationForBatch.get(parentId);
 			saveSubpartRelations(parentId, successorIds);
