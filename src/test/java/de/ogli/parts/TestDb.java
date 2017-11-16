@@ -20,6 +20,7 @@ public class TestDb extends TestCase {
 	final long testMinSize = 30; //minimum size of tested components
 	final long testMaxSize = 60; //maximum size of tested components
 	final long numberOfTestsPerAdditionalBatch = 100; //number of test runs
+	final long pauseBeforePerformanceTestMillis = 7200;
 	
 	public void testDb() {
 		
@@ -31,7 +32,6 @@ public class TestDb extends TestCase {
 		ArrayList<Long> allComponentIdsForTestSize = new ArrayList<Long>();
 		
 		for(int i = 0; i < N; i += batchSize) {
-			System.out.println("created "+i+" from "+N+" components");
 	    	TestDataGenerator tdg = new TestDataGenerator(session, batchSize);
 			String nameSuffix = ""+i;
 			HashMap<Long, HashSet<Long>> subPartRelation = tdg.createBatch(nameSuffix );
@@ -41,13 +41,22 @@ public class TestDb extends TestCase {
 	        		allComponentIdsForTestSize.addAll(subPartRelation.keySet());
 	        	}
 	        }
+			System.out.println("created "+(i+batchSize)+" from "+N+" components");
+
 	        ArrayList<Long> sample = getSample(allComponentIdsForTestSize, numberOfTestsPerAdditionalBatch, rnd);
-		    doPerformanceMeasurement(session, i, sample);
+		    try {
+				Thread.sleep(pauseBeforePerformanceTestMillis);
+			} catch (InterruptedException e) {
+				throw new IllegalStateException(e);
+			}
+	        doPerformanceMeasurement(session, i, sample);
 		}
 		session.close();
 	}
 
 	private void doPerformanceMeasurement(Session session, int numberOfComponents, ArrayList<Long> sample) {
+		
+		System.out.print("Start test. ");
 		long millisAtStart = System.currentTimeMillis();
 		
 		for (int i = 0; i < sample.size(); i++) {
@@ -58,7 +67,7 @@ public class TestDb extends TestCase {
 		}
 		
 		long millisDuration = System.currentTimeMillis() - millisAtStart;
-		System.out.println("Duration for test: "+millisDuration+"ms");
+		System.out.println("Durationt: "+millisDuration+"ms");
 	};
 
 	private void loadAllParts(Session session, Long componentId) {
