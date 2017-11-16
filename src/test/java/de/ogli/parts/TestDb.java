@@ -20,7 +20,8 @@ public class TestDb extends TestCase {
 		for(int i = 0; i < N; i += batchSize) {
 			System.out.println("created "+i+" from "+N+" components");
 	    	TestDataGenerator tdg = new TestDataGenerator(session, batchSize);
-	    	tdg.createBatch();
+	    	boolean fillReachabilityTable = true;
+			tdg.createBatch(fillReachabilityTable );
 	    }
 		session.close();
 	}

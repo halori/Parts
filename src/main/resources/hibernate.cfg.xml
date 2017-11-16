@@ -19,10 +19,11 @@
         <property name="show_sql">false</property>
 
         <!-- Drop and re-create all database on startup -->
-        <property name="hibernate.hbm2ddl.auto">createdrop</property>
+        <property name="hibernate.hbm2ddl.auto">create-drop</property>
 
         <!-- Annotated entity classes -->
         <mapping class="de.ogli.parts.entities.Component"/>
         <mapping class="de.ogli.parts.entities.Transformation"/>
+        <mapping class="de.ogli.parts.entities.SubPartRelation"/>
     </session-factory>
 </hibernate-configuration>
