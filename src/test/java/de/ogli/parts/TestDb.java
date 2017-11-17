@@ -3,18 +3,17 @@ package de.ogli.parts;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Random;
 
 import org.hibernate.CacheMode;
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
 import de.ogli.parts.dbaccess.ComponentGraph;
-import de.ogli.parts.entities.Component;
-import de.ogli.parts.entities.Transformation;
+import de.ogli.parts.dbaccess.ComponentGraphLoader;
+import de.ogli.parts.dbaccess.ComponentGraphLoaderBySubpartRelation;
+import de.ogli.parts.dbaccess.ComponentGraphLoaderByTraversal;
 import de.ogli.parts.utils.TestDataGenerator;
 import junit.framework.TestCase;
 
@@ -26,13 +25,15 @@ public class TestDb extends TestCase {
 	static final long testMaxSize = 60; // maximum size of tested components
 	static final long numberOfTestsPerAdditionalBatch = 100; // number of test runs
 	static final long pauseBeforePerformanceTestMillis = 1 * 60 * 1000;
-    static final int batchSize = 5000;
+	static final int batchSize = 5000;
+	static final ComponentGraphLoader loadersToTest[] = { new ComponentGraphLoaderBySubpartRelation(),
+			new ComponentGraphLoaderByTraversal() };
 
 	public void testDb() {
 
 		Random rnd = new Random(72256);
 		SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
-		
+
 		ArrayList<Long> allComponentIdsForTestSize = new ArrayList<Long>();
 
 		TestDataGenerator tdg = new TestDataGenerator(batchSize);
@@ -53,8 +54,8 @@ public class TestDb extends TestCase {
 			System.out.println("created " + (i + batchSize) + " from " + N + " components."
 					+ " Duration for last batch: " + (millisDuration / 1000) + "s");
 
-			System.out.println("sampling "+numberOfTestsPerAdditionalBatch
-					+" from "+allComponentIdsForTestSize.size() + " suitable components.");
+			System.out.println("sampling " + numberOfTestsPerAdditionalBatch + " from "
+					+ allComponentIdsForTestSize.size() + " suitable components.");
 			ArrayList<Long> sample = getSample(allComponentIdsForTestSize, numberOfTestsPerAdditionalBatch, rnd);
 			try {
 				Thread.sleep(pauseBeforePerformanceTestMillis);
@@ -63,52 +64,59 @@ public class TestDb extends TestCase {
 			}
 
 			doPerformanceMeasurement(sessionFactory, i, sample);
-
 		}
-
 	}
 
 	private void doPerformanceMeasurement(SessionFactory sessionFactory, int numberOfComponents,
 			ArrayList<Long> sample) {
 
 		System.out.print("Start test. ");
-		long millisAtStart = System.currentTimeMillis();
-		Session session = sessionFactory.openSession();
-		session.setCacheMode(CacheMode.IGNORE);
+		int loaderCnt = loadersToTest.length;
 
-		for (int i = 0; i < sample.size(); i++) {
-			session.beginTransaction();
-			loadAllParts(session, sample.get(i));
-			session.getTransaction().commit();
-			session.clear();
+		ComponentGraph results[][] = new ComponentGraph[loaderCnt][sample.size()];
+		long durationMillis[] = new long[sample.size()];
+
+		for (int runForCachingEffects = 0; runForCachingEffects < 2; runForCachingEffects++) {
+			for (int loaderIdx = 0; loaderIdx < loaderCnt; loaderIdx++) {
+
+				long millisAtStart = System.currentTimeMillis();
+				Session session = sessionFactory.openSession();
+				session.setCacheMode(CacheMode.IGNORE);
+
+				for (int i = 0; i < sample.size(); i++) {
+					session.beginTransaction();
+					ComponentGraph cg = loadersToTest[loaderIdx].loadComponentGraph(session, sample.get(i));
+					results[loaderIdx][i] = cg;
+					session.getTransaction().commit();
+					session.clear();
+				}
+
+				durationMillis[loaderIdx] = System.currentTimeMillis() - millisAtStart;
+			}
 		}
 
-		long millisDuration = System.currentTimeMillis() - millisAtStart;
-		System.out.println("Duration: " + millisDuration + "ms");
-	};
+		StringBuilder durationsText = new StringBuilder();
+		for (int loaderIdx = 0; loaderIdx < loaderCnt; loaderIdx++) {
+			if (durationsText.length() > 0) {
+				durationsText.append(", ");
+			}
+			durationsText.append(loadersToTest[loaderIdx].shortName());
+			durationsText.append(":");
+			durationsText.append(durationMillis[loaderIdx]);
+		}
 
-	private ComponentGraph loadAllParts(Session session, Long componentId) {
-		HashSet<Component> components = new HashSet<Component>();
-		Component c = (Component) session.load(Component.class, componentId);
-        components.add(c);
-        Query querySubComponents = session.createQuery("from Component p where exists (from SubPartRelation s where s.partComponentId = p.id and s.mainComponentId = :cid)");
-        querySubComponents.setParameter("cid", c.getId());
-        @SuppressWarnings("unchecked")
-		List<Component> subComponents = (List<Component>) querySubComponents.list();
-        components.addAll(subComponents);
-        HashSet<Transformation> transformations = new HashSet<Transformation>();
-        Query queryDirectTransfomations = session.createQuery("from Transformation t where t.parentComponentId = :cid)");
-        queryDirectTransfomations.setParameter("cid", c.getId());
-		@SuppressWarnings("unchecked")
-		List<Transformation>  directTransformations = (List<Transformation>) queryDirectTransfomations.list();
-        transformations.addAll(directTransformations);
-		Query querySubTransfomations = session.createQuery("from Transformation t where exists (from SubPartRelation s where s.partComponentId = t.parentComponentId and s.mainComponentId = :cid)");
-		querySubTransfomations.setParameter("cid", c.getId());
-		@SuppressWarnings("unchecked")
-		List<Transformation>  subTransformations = (List<Transformation>) querySubTransfomations.list();
-        transformations.addAll(subTransformations);
-		return new ComponentGraph(components, transformations);
-}
+		System.out.println("Duration: " + durationsText.toString() + "ms");
+		for (int loaderIdx = 1; loaderIdx < loaderCnt; loaderIdx++) {
+
+			for (int i = 0; i < sample.size(); i++) {
+				ComponentGraph gc0 = results[0][i];
+				ComponentGraph gci = results[loaderIdx][i];
+				// check is not sufficient for equality
+				assertEquals(gc0.components.size(), gci.components.size());
+				assertEquals(gc0.transformations.size(), gci.transformations.size());
+			}
+		}
+	}
 
 	private ArrayList<Long> getSample(ArrayList<Long> list, long n, Random rnd) {
 		ArrayList<Long> sample = new ArrayList<Long>();
@@ -116,6 +124,6 @@ public class TestDb extends TestCase {
 			int idx = rnd.nextInt(list.size());
 			sample.add(list.get(idx));
 		}
-return sample;
+		return sample;
 	}
 }
