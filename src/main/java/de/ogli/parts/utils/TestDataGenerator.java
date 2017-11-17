@@ -13,25 +13,22 @@ import de.ogli.parts.entities.Transformation;
 
 public class TestDataGenerator {
 
-	private final Session session;
-
 	private final int BatchSize;
 
 	private final Random rnd = new Random(24543);
 
-	public TestDataGenerator(Session session, int numberOfComponents) {
-		this.session = session;
+	public TestDataGenerator(int numberOfComponents) {
 		this.BatchSize = numberOfComponents;
 	}
 
-	public HashMap<Long, HashSet<Long>> createBatch(String nameSuffix) {
+	public HashMap<Long, HashSet<Long>> createBatch(Session session, String nameSuffix) {
 		ArrayList<Long> savedComponentIds = new ArrayList<Long>();
 
 		session.beginTransaction();
 		HashMap<Long, HashSet<Long>> subPartRelation = 
 				new HashMap<Long, HashSet<Long>>();
 		for (int i = 0; i < BatchSize; i++) {
-			createComponent(nameSuffix, i, subPartRelation, savedComponentIds);
+			createComponent(session, nameSuffix, i, subPartRelation, savedComponentIds);
 			if (i % 100 == 0) {
 				session.getTransaction().commit();
 				session.beginTransaction();
@@ -42,7 +39,7 @@ public class TestDataGenerator {
 		return subPartRelation;
 	}
 
-	private void createComponent(String nameSuffix, int i, HashMap<Long, HashSet<Long>> SubPartRelationForBatch,
+	private void createComponent(Session session, String nameSuffix, int i, HashMap<Long, HashSet<Long>> SubPartRelationForBatch,
 			ArrayList<Long> savedComponentIds) {
 		boolean isBaseComponent = (i < BatchSize / 3);
 		if (isBaseComponent) {
@@ -68,11 +65,11 @@ public class TestDataGenerator {
 				subpartIds.addAll(childSubpartIds);
 			}
 			HashSet<Long> successorIds = SubPartRelationForBatch.get(parentId);
-			saveSubpartRelations(parentId, successorIds);
+			saveSubpartRelations(session,parentId, successorIds);
 		}
 	}
 
-	private void saveSubpartRelations(long parentId, HashSet<Long> partIds) {
+	private void saveSubpartRelations(Session session, long parentId, HashSet<Long> partIds) {
 
 		//System.out.print(""+partIds.size()+",");
 
