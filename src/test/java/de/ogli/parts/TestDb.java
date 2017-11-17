@@ -1,7 +1,5 @@
 package de.ogli.parts;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -13,7 +11,6 @@ import org.hibernate.CacheMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
-import org.postgresql.util.StreamWrapper;
 
 import de.ogli.parts.dbaccess.ComponentGraph;
 import de.ogli.parts.dbaccess.ComponentGraphLoader;
@@ -31,8 +28,7 @@ public class TestDb extends TestCase {
 	static final long testMaxSize = 60; // maximum size of tested components
 	static final long numberOfTestsPerAdditionalBatch = 100; // number of test runs
 	static final long pauseBeforePerformanceTestMillis = 1 * 60 * 1000;
-	static final int batchSize = 5000;
-	static final ComponentGraphLoader loadersToTest[] = { new ComponentGraphLoaderBySubpartRelation(),
+	static final int batchSize = 5000;	static final ComponentGraphLoader loadersToTest[] = { new ComponentGraphLoaderBySubpartRelation(),
 			new ComponentGraphLoaderByTraversal(), new ComponentGraphLoaderBySqlRecursion() };
 
 	public void testDb() throws IOException {
@@ -94,7 +90,7 @@ public class TestDb extends TestCase {
 		int loaderCnt = loadersToTest.length;
 
 		ComponentGraph results[][] = new ComponentGraph[loaderCnt][sample.size()];
-		long durationMillis[] = new long[sample.size()];
+		long durationMillis[] = new long[loaderCnt];
 
 		for (int runForCachingEffects = 0; runForCachingEffects < 2; runForCachingEffects++) {
 			for (int loaderIdx = 0; loaderIdx < loaderCnt; loaderIdx++) {
@@ -118,7 +114,7 @@ public class TestDb extends TestCase {
 		StringBuilder durationsText = new StringBuilder();
 		for (int loaderIdx = 0; loaderIdx < loaderCnt; loaderIdx++) {
 			
-			writer.write(", "+durationMillis[loaderCnt]);
+			writer.write(", "+durationMillis[loaderIdx]);
 			
 			if (durationsText.length() > 0) {
 				durationsText.append(", ");
