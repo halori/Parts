@@ -1,5 +1,9 @@
 package de.ogli.parts;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,9 +13,11 @@ import org.hibernate.CacheMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
+import org.postgresql.util.StreamWrapper;
 
 import de.ogli.parts.dbaccess.ComponentGraph;
 import de.ogli.parts.dbaccess.ComponentGraphLoader;
+import de.ogli.parts.dbaccess.ComponentGraphLoaderBySqlRecursion;
 import de.ogli.parts.dbaccess.ComponentGraphLoaderBySubpartRelation;
 import de.ogli.parts.dbaccess.ComponentGraphLoaderByTraversal;
 import de.ogli.parts.utils.TestDataGenerator;
@@ -27,11 +33,20 @@ public class TestDb extends TestCase {
 	static final long pauseBeforePerformanceTestMillis = 1 * 60 * 1000;
 	static final int batchSize = 5000;
 	static final ComponentGraphLoader loadersToTest[] = { new ComponentGraphLoaderBySubpartRelation(),
-			new ComponentGraphLoaderByTraversal() };
+			new ComponentGraphLoaderByTraversal(), new ComponentGraphLoaderBySqlRecursion() };
 
-	public void testDb() {
+	public void testDb() throws IOException {
 
 		Random rnd = new Random(72256);
+		PrintWriter writer = new PrintWriter("performance.txt");
+		StringBuilder header = new StringBuilder();
+		header.append("dbsize, batchsize, write-batch(ms)");
+		for (int i = 0; i < loadersToTest.length; i++) {
+			header.append(", ").append(loadersToTest[i].shortName()).append("(ms)");
+		}
+		writer.write(header.toString());
+		writer.write("\n");
+
 		SessionFactory sessionFactory = new Configuration().configure().buildSessionFactory();
 
 		ArrayList<Long> allComponentIdsForTestSize = new ArrayList<Long>();
@@ -63,11 +78,16 @@ public class TestDb extends TestCase {
 				throw new IllegalStateException(e);
 			}
 
-			doPerformanceMeasurement(sessionFactory, i, sample);
+			writer.write("" + i + batchSize + ", " + batchSize + ", " + millisDuration);
+			
+			doPerformanceMeasurement(writer, sessionFactory, i, sample);
+			writer.write("\n");
+			writer.flush();
 		}
+		writer.close();
 	}
 
-	private void doPerformanceMeasurement(SessionFactory sessionFactory, int numberOfComponents,
+	private void doPerformanceMeasurement(PrintWriter writer, SessionFactory sessionFactory, int numberOfComponents,
 			ArrayList<Long> sample) {
 
 		System.out.print("Start test. ");
@@ -97,6 +117,9 @@ public class TestDb extends TestCase {
 
 		StringBuilder durationsText = new StringBuilder();
 		for (int loaderIdx = 0; loaderIdx < loaderCnt; loaderIdx++) {
+			
+			writer.write(", "+durationMillis[loaderCnt]);
+			
 			if (durationsText.length() > 0) {
 				durationsText.append(", ");
 			}
