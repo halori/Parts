@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 
+import org.hibernate.CacheMode;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 
 import de.ogli.parts.entities.Component;
 import de.ogli.parts.entities.SubPartRelation;
@@ -21,9 +23,11 @@ public class TestDataGenerator {
 		this.BatchSize = numberOfComponents;
 	}
 
-	public HashMap<Long, HashSet<Long>> createBatch(Session session, String nameSuffix) {
+	public HashMap<Long, HashSet<Long>> createBatch(SessionFactory sessionfactory, String nameSuffix) {
 		ArrayList<Long> savedComponentIds = new ArrayList<Long>();
 
+		Session session = sessionfactory.openSession();
+		session.setCacheMode(CacheMode.IGNORE);
 		session.beginTransaction();
 		HashMap<Long, HashSet<Long>> subPartRelation = 
 				new HashMap<Long, HashSet<Long>>();
@@ -36,6 +40,7 @@ public class TestDataGenerator {
 			}
 		}
 		session.getTransaction().commit();
+		session.close();
 		return subPartRelation;
 	}
 

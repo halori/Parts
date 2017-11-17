@@ -24,11 +24,11 @@ public class Transformation implements Serializable
 	   
 	    @Index(name="T_PARENT_IDX")
 	    @Column(name = "PARENT_ID", nullable = false, precision = 18, scale = 0)
-	    private Long ParentComponentId;
+	    private Long parentComponentId;
 	   
 	    @Index(name="T_CHILD_IDX")
 	    @Column(name = "CHILD_ID", nullable = false, precision = 18, scale = 0)
-	    private Long ChildComponentId;
+	    private Long childComponentId;
 	   
 	
 	 @Column(name = "MAPPING", length = 200, nullable = false)
@@ -39,8 +39,8 @@ public class Transformation implements Serializable
 
 		public Transformation(Long parentComponentId, Long childComponentId, String mapping) {
 			super();
-			ParentComponentId = parentComponentId;
-			ChildComponentId = childComponentId;
+			this.parentComponentId = parentComponentId;
+			this.childComponentId = childComponentId;
 			this.mapping = mapping;
 		}
 
@@ -53,19 +53,19 @@ public class Transformation implements Serializable
 		}
 
 		public Long getParentComponentId() {
-			return ParentComponentId;
+			return parentComponentId;
 		}
 
 		public void setParentComponentId(Long parentComponentId) {
-			ParentComponentId = parentComponentId;
+			this.parentComponentId = parentComponentId;
 		}
 
 		public Long getChildComponentId() {
-			return ChildComponentId;
+			return childComponentId;
 		}
 
 		public void setChildComponentId(Long childComponentId) {
-			ChildComponentId = childComponentId;
+			this.childComponentId = childComponentId;
 		}
 
 		public String getMapping() {
@@ -78,7 +78,7 @@ public class Transformation implements Serializable
 
 		@Override
 		public String toString() {
-			return "[id=" + id + ", ParentComponentId=" + ParentComponentId + ", ChildComponentId="
-					+ ChildComponentId + ", mapping=" + mapping + "]";
+			return "[id=" + id + ", ParentComponentId=" + parentComponentId + ", ChildComponentId="
+					+ childComponentId + ", mapping=" + mapping + "]";
 		}	
 }

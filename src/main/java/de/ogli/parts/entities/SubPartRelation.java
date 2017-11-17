@@ -22,8 +22,8 @@ public class SubPartRelation implements Serializable {
 	private Long id;
 
 	@Index(name = "PARENT_IDX")
-	@Column(name = "SR_PARENT_ID", nullable = false, precision = 18, scale = 0)
-	private Long parentComponentId;
+	@Column(name = "SR_Main_ID", nullable = false, precision = 18, scale = 0)
+	private Long mainComponentId;
 
 	@Index(name = "PART_IDX")
 	@Column(name = "SR_PART_ID", nullable = false, precision = 18, scale = 0)
@@ -32,8 +32,8 @@ public class SubPartRelation implements Serializable {
 	public SubPartRelation() {
 	}
 
-	public SubPartRelation(Long parentComponentId, Long partComponentId) {
-		this.parentComponentId = parentComponentId;
+	public SubPartRelation(Long mainComponentId, Long partComponentId) {
+		this.mainComponentId = mainComponentId;
 		this.partComponentId = partComponentId;
 	}
 
@@ -45,24 +45,24 @@ public class SubPartRelation implements Serializable {
 		this.id = id;
 	}
 
-	public Long getParentComponentId() {
-		return parentComponentId;
+	public Long getMainComponentId() {
+		return mainComponentId;
 	}
 
-	public void setParentComponentId(Long parentComponentId) {
-		this.parentComponentId = parentComponentId;
+	public void setMainComponentId(Long mainComponentId) {
+		this.mainComponentId = mainComponentId;
 	}
 
 	public Long getPartComponentId() {
 		return partComponentId;
 	}
 
-	public void setChildComponentId(Long partComponentId) {
+	public void setPartComponentId(Long partComponentId) {
 		this.partComponentId = partComponentId;
 	}
 
 	@Override
 	public String toString() {
-		return "[id=" + id + ", ParentComponentId=" + parentComponentId + ", partComponentId=" + partComponentId + "]";
+		return "[id=" + id + ", MainComponentId=" + mainComponentId + ", partComponentId=" + partComponentId + "]";
 	}
 }
