@@ -1,5 +1,6 @@
 package de.ogli.parts.dbaccess;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -16,28 +17,30 @@ public class ComponentGraphLoaderByTraversal implements ComponentGraphLoader
 		return "Traversal";
 	}
 	public ComponentGraph loadComponentGraph(Session session, long componentId) {
+		HashMap<Long, Component> componentsById = new HashMap<Long, Component>();
+		HashSet<Transformation> transformations = new HashSet<Transformation>();
+        loadRecursive(session, componentId, componentsById, transformations);
 		HashSet<Component> components = new HashSet<Component>();
+		components.addAll(componentsById.values());
+		return new ComponentGraph(components , transformations);
+	}
+	
+	private void loadRecursive(Session session, 
+			long componentId, HashMap<Long, Component> componentsById,
+			HashSet<Transformation> transformations) {
+		
+		if (componentsById.containsKey(componentId))
+				return;
 		Component c = (Component) session.load(Component.class, componentId);
-        components.add(c);
-        Query querySubComponents = session.createQuery("from Component p where exists (from SubPartRelation s where s.partComponentId = p.id and s.mainComponentId = :cid)");
-        querySubComponents.setParameter("cid", c.getId());
-        @SuppressWarnings("unchecked")
-		List<Component> subComponents = (List<Component>) querySubComponents.list();
-        components.addAll(subComponents);
-        HashSet<Transformation> transformations = new HashSet<Transformation>();
-        Query queryDirectTransfomations = session.createQuery("from Transformation t where t.parentComponentId = :cid)");
+		componentsById.put(componentId, c);
+		Query queryDirectTransfomations = session.createQuery("from Transformation t where t.parentComponentId = :cid)");
         queryDirectTransfomations.setParameter("cid", c.getId());
 		@SuppressWarnings("unchecked")
 		List<Transformation>  directTransformations = (List<Transformation>) queryDirectTransfomations.list();
-        //System.out.println("Direct tranforms for "+c.getId()+": "+directTransformations.size());
-		transformations.addAll(directTransformations);
-		Query querySubTransfomations = session.createQuery("from Transformation t where exists (from SubPartRelation s where s.partComponentId = t.parentComponentId and s.mainComponentId = :cid)");
-		querySubTransfomations.setParameter("cid", c.getId());
-		@SuppressWarnings("unchecked")
-		List<Transformation>  subTransformations = (List<Transformation>) querySubTransfomations.list();
-		System.out.println("Indirect tranforms for "+c.getId()+": "+subTransformations.size());
-		transformations.addAll(subTransformations);
-		//System.out.println("All transformations for  "+c.getId()+": "+transformations.size());
-	    return new ComponentGraph(components, transformations);
+        for (Transformation t : directTransformations) {
+        	transformations.add(t);
+        	loadRecursive(session, t.getChildComponentId(), componentsById, transformations);
+        	
+        }
 	}
 }
