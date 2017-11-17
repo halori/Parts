@@ -74,7 +74,7 @@ public class TestDb extends TestCase {
 				throw new IllegalStateException(e);
 			}
 
-			writer.write("" + i + batchSize + ", " + batchSize + ", " + millisDuration);
+			writer.write("" + (i + batchSize) + ", " + batchSize + ", " + millisDuration);
 			
 			doPerformanceMeasurement(writer, sessionFactory, i, sample);
 			writer.write("\n");
