@@ -28,8 +28,10 @@ public class TestDb extends TestCase {
 	static final long testMaxSize = 60; // maximum size of tested components
 	static final long numberOfTestsPerAdditionalBatch = 100; // number of test runs
 	static final long pauseBeforePerformanceTestMillis = 1 * 60 * 1000;
-	static final int batchSize = 5000;	static final ComponentGraphLoader loadersToTest[] = { new ComponentGraphLoaderBySubpartRelation(),
-			new ComponentGraphLoaderByTraversal(), new ComponentGraphLoaderBySqlRecursion() };
+	static final int batchSize = 5000;	static final ComponentGraphLoader loadersToTest[] = { 
+			new ComponentGraphLoaderBySqlRecursion(),
+			new ComponentGraphLoaderBySubpartRelation(),
+			new ComponentGraphLoaderByTraversal() };
 
 	public void testDb() throws IOException {
 
@@ -92,7 +94,7 @@ public class TestDb extends TestCase {
 		ComponentGraph results[][] = new ComponentGraph[loaderCnt][sample.size()];
 		long durationMillis[] = new long[loaderCnt];
 
-		for (int runForCachingEffects = 0; runForCachingEffects < 2; runForCachingEffects++) {
+		//for (int runForCachingEffects = 0; runForCachingEffects < 2; runForCachingEffects++) {
 			for (int loaderIdx = 0; loaderIdx < loaderCnt; loaderIdx++) {
 
 				long millisAtStart = System.currentTimeMillis();
@@ -109,7 +111,7 @@ public class TestDb extends TestCase {
 
 				durationMillis[loaderIdx] = System.currentTimeMillis() - millisAtStart;
 			}
-		}
+		//}
 
 		StringBuilder durationsText = new StringBuilder();
 		for (int loaderIdx = 0; loaderIdx < loaderCnt; loaderIdx++) {
