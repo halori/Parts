@@ -17,24 +17,29 @@ public class SubPartRelation implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
+	@Column(name = "ID")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "ID", nullable = false, precision = 18, scale = 0)
 	private Long id;
 
+	@Column(name = "PARENT_ID")
 	@Index(name = "PARENT_IDX")
-	@Column(name = "SR_Main_ID", nullable = false, precision = 18, scale = 0)
 	private Long mainComponentId;
 
+	@Column(name = "PART_ID")
 	@Index(name = "PART_IDX")
-	@Column(name = "SR_PART_ID", nullable = false, precision = 18, scale = 0)
 	private Long partComponentId;
-
-	public SubPartRelation() {
-	}
 
 	public SubPartRelation(Long mainComponentId, Long partComponentId) {
 		this.mainComponentId = mainComponentId;
 		this.partComponentId = partComponentId;
+	}
+	
+	@Override
+	public String toString() {
+		return "[id=" + id + ", MainComponentId=" + mainComponentId + ", partComponentId=" + partComponentId + "]";
+	}
+
+	public SubPartRelation() {
 	}
 
 	public Long getId() {
@@ -59,10 +64,5 @@ public class SubPartRelation implements Serializable {
 
 	public void setPartComponentId(Long partComponentId) {
 		this.partComponentId = partComponentId;
-	}
-
-	@Override
-	public String toString() {
-		return "[id=" + id + ", MainComponentId=" + mainComponentId + ", partComponentId=" + partComponentId + "]";
 	}
 }

@@ -17,7 +17,6 @@ import de.ogli.parts.dbaccess.ComponentGraphLoader;
 import de.ogli.parts.dbaccess.ComponentGraphLoaderBySqlRecursion;
 import de.ogli.parts.dbaccess.ComponentGraphLoaderBySubpartRelation;
 import de.ogli.parts.dbaccess.ComponentGraphLoaderByTraversal;
-import de.ogli.parts.utils.TestDataGenerator;
 import junit.framework.TestCase;
 
 public class TestDb extends TestCase {
@@ -27,7 +26,7 @@ public class TestDb extends TestCase {
 	static final long testMinSize = 30; // minimum size of tested components
 	static final long testMaxSize = 60; // maximum size of tested components
 	static final long numberOfTestsPerAdditionalBatch = 100; // number of test runs
-	static final long pauseBeforePerformanceTestMillis = 1 * 60 * 1000;
+	static final long pauseBeforePerformanceTestMillis = 20 * 1000;
 	static final int batchSize = 5000;	static final ComponentGraphLoader loadersToTest[] = { 
 			new ComponentGraphLoaderBySqlRecursion(),
 			new ComponentGraphLoaderBySubpartRelation(),
@@ -49,7 +48,7 @@ public class TestDb extends TestCase {
 
 		ArrayList<Long> allComponentIdsForTestSize = new ArrayList<Long>();
 
-		TestDataGenerator tdg = new TestDataGenerator(batchSize);
+		RandomDataGenerator tdg = new RandomDataGenerator(batchSize);
 
 		for (int i = 0; i < N; i += batchSize) {
 
@@ -132,9 +131,7 @@ public class TestDb extends TestCase {
 			for (int i = 0; i < sample.size(); i++) {
 				ComponentGraph gc0 = results[0][i];
 				ComponentGraph gci = results[loaderIdx][i];
-				// check is not sufficient for equality
-				assertEquals(gc0.components.size(), gci.components.size());
-				assertEquals(gc0.transformations.size(), gci.transformations.size());
+				assertTrue(gci.equalsByIds(gc0));
 			}
 		}
 	}

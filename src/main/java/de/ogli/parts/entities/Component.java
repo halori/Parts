@@ -17,23 +17,21 @@ public class Component implements Serializable
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID", nullable = false, precision = 18, scale = 0)
+    @Column(name = "ID")
     private Long id;
    
     @Column(name = "NAME", length = 30, nullable = false)
     private String name;
 
+	public Component(String name) {
+		this.name = name;
+	}
+	
 	@Override
 	public String toString() {
 		return "[id=" + id + ", name=" + name + "]";
 	}
-
-	public Component(String name) {
-		this.name = name;
-	}
-
-
-
+	
 	public Component() {
 	}
 
